@@ -896,6 +896,7 @@ nfsm_chain_add_v3sattr_f(
 	struct nfsm_chain *nmc,
 	struct vnode_attr *vap)
 {
+#pragma unused(nmp)
 	int error = 0;
 
 	if (VATTR_IS_ACTIVE(vap, va_mode)) {
@@ -1325,6 +1326,7 @@ nfs_parsefattr(
 	int nfsvers,
 	struct nfs_vattr *nvap)
 {
+#pragma unused(nmp)
 	int error = 0;
 	enum vtype vtype;
 	nfstype nvtype;

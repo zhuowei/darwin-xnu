@@ -1827,20 +1827,6 @@ nfsmout:
 	return error;
 }
 
-static int
-nfs_parse_user_access(
-	mount_t mp,
-	enum vtype type)
-{
-	int user_access = R_OK;
-	if ((vfs_flags(mp) & MNT_RDONLY) == 0) {
-		user_access |= W_OK;
-	}
-	if (type == VDIR) {
-		user_access |= X_OK;
-	}
-	return user_access;
-}
 
 /*
  * NFS getattr call from vfs.

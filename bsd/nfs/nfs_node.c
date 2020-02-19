@@ -561,7 +561,7 @@ loop:
 	{
 		error = vnode_create(VNCREATE_FLAVOR, VCREATESIZE, &vfsp, &np->n_vnode);
 	}
-notsup:
+
 	if (error) {
 		FSDBG(266, 0, np, np->n_flag, 0xb1eb1e);
 		nfs_node_unlock(np);

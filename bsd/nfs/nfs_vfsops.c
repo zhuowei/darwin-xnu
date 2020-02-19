@@ -533,6 +533,7 @@ nfs_get_volname(struct mount *mp, char *volname, size_t len, vfs_context_t ctx)
 	struct nfsmount *nmp = VFSTONFS(mp);
 	size_t mflen;
 
+#pragma unused(ctx, nmp)
 
 	mflen = strnlen(mntfrom, MAXPATHLEN + 1);
 
