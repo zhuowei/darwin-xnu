@@ -485,6 +485,10 @@ typedef enum {
 	CWA_FORCE_OFF = 5       /* Similarly for FORCE_OFF sharing bit 2 */
 } cwa_classifier_e;
 
+#define cfgAdr 		0xCF8
+#define cfgDat 		0xCFC
+#define XeonCapID5      0
+
 static inline int
 is_xeon_sp(uint8_t platid)
 {

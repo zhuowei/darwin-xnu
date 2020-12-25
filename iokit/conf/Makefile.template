@@ -46,6 +46,7 @@ IOUserClient.cpo_CXXWARNFLAGS_ADD += -Wno-missing-prototypes
 IOKitDebug.cpo_CXXWARNFLAGS_ADD += -Wno-missing-prototypes
 IOKitBSDInit.cpo_CXXWARNFLAGS_ADD += -Wno-missing-prototypes -Wno-documentation
 IOPMrootDomain.cpo_CXXWARNFLAGS_ADD += -Wno-missing-prototypes
+IODMACommand.iig.cpo_CXXWARNFLAGS_ADD += -Wno-duplicate-decl-specifier
 
 #
 # Directories for generated files
