@@ -115,6 +115,19 @@ void    ipc_port_callstack_init_debug(
 
 #endif  /* MACH_ASSERT */
 
+int zhuoweilog(void);
+void proc_selfname(char * buf, int size);
+
+// Used to control debugging.
+// Returns 1 if the current process name is "crashtest".
+int zhuoweilog() {
+	// #define MAXCOMLEN       16  
+	char pn[16 + 1];
+	pn[0] = 0;
+    proc_selfname(pn, sizeof(pn));
+	return !strcmp(pn, "crashtest");
+}
+
 static void
 ipc_port_send_turnstile_recompute_push_locked(
 	ipc_port_t port);
@@ -1603,6 +1616,16 @@ ipc_port_link_special_reply_port(
 	/* Lock the special reply port and establish the linkage */
 	ip_lock(special_reply_port);
 	imq_lock(&special_reply_port->ip_messages);
+	if (zhuoweilog()) {
+		kprintf("ipc_port_link_special_reply_port: port=%p dest=%p sync=%s "
+		"state=%x ip_sync_inheritor_port=%p\n",
+		special_reply_port,
+		dest_port,
+		sync_bootstrap_checkin? "yes": "no",
+		special_reply_port->ip_sync_link_state,
+		special_reply_port->ip_sync_inheritor_port
+		);
+	}
 
 	if (sync_bootstrap_checkin && special_reply_port->ip_specialreply) {
 		special_reply_port->ip_sync_bootstrap_checkin = 1;
@@ -1618,6 +1641,11 @@ ipc_port_link_special_reply_port(
 		ip_reference(dest_port);
 		special_reply_port->ip_sync_inheritor_port = dest_port;
 		special_reply_port->ip_sync_link_state = PORT_SYNC_LINK_PORT;
+		if (zhuoweilog()) {
+			kprintf("Take a reference: %p -> %p\n",
+			special_reply_port,
+			special_reply_port->ip_sync_inheritor_port);
+		}
 	}
 
 	imq_unlock(&special_reply_port->ip_messages);
@@ -1718,6 +1746,16 @@ ipc_port_adjust_special_reply_port_locked(
 		// only mach_msg_receive_results_complete() calls this with any port
 		assert(get_turnstile);
 		goto not_special;
+	}
+	if (zhuoweilog()) {
+		kprintf("In ipc_port_adjust_special_reply_port_locked:"
+			"port=%p obj=%p state=%x kn=%p flags=%x get_turnstile=%s",
+			special_reply_port,
+			(void*)(special_reply_port->ip_kobject),
+			special_reply_port->ip_sync_link_state,
+			kn,
+			flags,
+			get_turnstile? "yes": "no");
 	}
 
 	if (flags & IPC_PORT_ADJUST_SR_RECEIVED_MSG) {

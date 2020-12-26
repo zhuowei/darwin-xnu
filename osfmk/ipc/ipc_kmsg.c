@@ -216,6 +216,7 @@ mm_copy_options_string64(
 	mach_msg_copy_options_t option);
 
 void db_print_msg_uid64(mach_msg_header_t *);
+extern int zhuoweilog(void);
 
 static void
 ipc_msg_body_print64(void *body, int size)
@@ -2209,6 +2210,14 @@ ipc_kmsg_set_qos(
 	kern_return_t kr;
 	ipc_port_t special_reply_port = kmsg->ikm_header->msgh_local_port;
 	ipc_port_t dest_port = kmsg->ikm_header->msgh_remote_port;
+	if (zhuoweilog()) {
+		kprintf("ipc_kmsg_set_qos kmsg=%p options=%x override=%x reply=%p dest=%p "
+		"ip_valid=%s msgh_bits=%x\n",
+		kmsg, options, override,
+		special_reply_port, dest_port,
+		IP_VALID(special_reply_port)? "yes": "no",
+		kmsg->ikm_header->msgh_bits);
+	}
 
 	kr = ipc_get_pthpriority_from_kmsg_voucher(kmsg, &kmsg->ikm_qos);
 	if (kr != KERN_SUCCESS) {
@@ -2486,6 +2495,9 @@ ipc_kmsg_copyin_header(
 #if IMPORTANCE_INHERITANCE
 	boolean_t needboost = FALSE;
 #endif /* IMPORTANCE_INHERITANCE */
+	if (zhuoweilog()) {
+		kprintf("start of ipc_kmsg_copyin_header\n");
+	}
 
 	if ((mbits != msg->msgh_bits) ||
 	    (!MACH_MSG_TYPE_PORT_ANY_SEND(dest_type)) ||
@@ -2772,6 +2784,10 @@ ipc_kmsg_copyin_header(
 			assert(IP_VALID(voucher_port));
 			require_ip_active(voucher_port);
 		}
+	}
+	if (zhuoweilog()) {
+		kprintf("after ipc right copy in: dest=%p reply=%p\n",
+			dest_port, reply_port);
 	}
 
 	/*
@@ -3697,6 +3713,15 @@ ipc_kmsg_copyin(
 	    kmsg->ikm_header->msgh_local_port,
 	    kmsg->ikm_voucher,
 	    kmsg->ikm_header->msgh_id);
+	if (zhuoweilog()) {
+		kprintf("ipc_kmsg_copyin header:\n%.8x\n%.8x\n%p\n%p\n%p\n%.8x\n",
+	    kmsg->ikm_header->msgh_size,
+	    kmsg->ikm_header->msgh_bits,
+	    kmsg->ikm_header->msgh_remote_port,
+	    kmsg->ikm_header->msgh_local_port,
+	    kmsg->ikm_voucher,
+	    kmsg->ikm_header->msgh_id);
+	}
 
 	if ((kmsg->ikm_header->msgh_bits & MACH_MSGH_BITS_COMPLEX) == 0) {
 		return MACH_MSG_SUCCESS;

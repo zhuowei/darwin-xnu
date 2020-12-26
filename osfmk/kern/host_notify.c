@@ -58,6 +58,8 @@ struct host_notify_entry {
 
 typedef struct host_notify_entry        *host_notify_t;
 
+extern int zhuoweilog(void);
+
 void
 host_notify_init(void)
 {
@@ -117,6 +119,9 @@ host_request_notification(
 
 	entry->port = port;
 	ipc_kobject_set_atomically(port, (ipc_kobject_t)entry, IKOT_HOST_NOTIFY);
+	if (zhuoweilog()) {
+		kprintf("host_request_notification port %p entry %p\n", port, entry);
+	}
 	ip_unlock(port);
 
 	enqueue_tail(&host_notify_queue[notify_type], (queue_entry_t)entry);
@@ -140,6 +145,9 @@ host_notify_port_destroy(
 		ipc_kobject_set_atomically(port, IKO_NULL, IKOT_NONE);
 		ip_unlock(port);
 
+		if (zhuoweilog()) {
+			kprintf("host_notify_port_destroy port: %p entry: %p\n", port, entry);
+		}
 		assert(entry->port == port);
 		remqueue((queue_entry_t)entry);
 		lck_mtx_unlock(&host_notify_lock);

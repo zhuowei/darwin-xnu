@@ -155,6 +155,8 @@ mach_msg_rcv_link_special_reply_port(
 void
 mach_msg_receive_results_complete(ipc_object_t object);
 
+extern int zhuoweilog(void);
+
 const security_token_t KERNEL_SECURITY_TOKEN = KERNEL_SECURITY_TOKEN_VALUE;
 const audit_token_t KERNEL_AUDIT_TOKEN = KERNEL_AUDIT_TOKEN_VALUE;
 
@@ -528,6 +530,9 @@ mach_msg_overwrite_trap(
 		ipc_kmsg_t kmsg;
 
 		KDBG(MACHDBG_CODE(DBG_MACH_IPC, MACH_IPC_KMSG_INFO) | DBG_FUNC_START);
+		if (zhuoweilog()) {
+			kprintf("Sending a message\n");
+		}
 
 		mr = ipc_kmsg_get(msg_addr, send_size, &kmsg);
 
@@ -571,6 +576,9 @@ mach_msg_overwrite_trap(
 			return mr;
 		}
 		/* hold ref for object */
+		if (zhuoweilog()) {
+			kprintf("Receiving message! object=%p\n", object);
+		}
 
 		if ((option & MACH_RCV_SYNC_WAIT) && !(option & MACH_SEND_SYNC_OVERRIDE)) {
 			ipc_port_t special_reply_port;
@@ -624,6 +632,11 @@ mach_msg_rcv_link_special_reply_port(
 {
 	ipc_port_t dest_port = IP_NULL;
 	kern_return_t kr;
+	if (zhuoweilog()) {
+		kprintf("mach_msg_rcv_link_special_reply_port port=%p dest=%x\n",
+			special_reply_port,
+			dest_name_port);
+	}
 
 	if (current_thread()->ith_special_reply_port != special_reply_port) {
 		return MACH_RCV_INVALID_NOTIFY;
@@ -639,6 +652,9 @@ mach_msg_rcv_link_special_reply_port(
 		ip_reference(dest_port);
 		ip_unlock(dest_port);
 
+		if (zhuoweilog()) {
+			kprintf("mach_msg_rcv_link_special_reply_port got dest port=%p\n", dest_port);
+		}
 		/*
 		 * The receive right of dest port might have gone away,
 		 * do not fail the receive in that case.
