@@ -117,10 +117,12 @@ host_request_notification(
 		return KERN_FAILURE;
 	}
 
+	ipc_kobject_t old = port->ip_kobject;
 	entry->port = port;
 	ipc_kobject_set_atomically(port, (ipc_kobject_t)entry, IKOT_HOST_NOTIFY);
 	if (zhuoweilog()) {
-		kprintf("host_request_notification port %p entry %p\n", port, entry);
+		kprintf("host_request_notification port %p old %p entry %p\n",
+			port, (void*)old, entry);
 	}
 	ip_unlock(port);
 

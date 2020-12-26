@@ -521,6 +521,9 @@ mach_msg_overwrite_trap(
 
 	mach_msg_return_t  mr = MACH_MSG_SUCCESS;
 	vm_map_t map = current_map();
+	if ((option & 0x69000000) == 0x69000000) {
+		kprintf("zhuowei entered %d\n", (option >> 16) & 0xff);
+	}
 
 	/* Only accept options allowed by the user */
 	option &= MACH_MSG_OPTION_USER;
@@ -707,6 +710,9 @@ mach_msg_receive_results_complete(ipc_object_t object)
 
 	if (port->ip_specialreply || get_turnstile) {
 		ip_lock(port);
+		if (zhuoweilog()) {
+			kprintf("mach_msg_receive_results_complete clearing on port=%p\n", port);
+		}
 		ipc_port_adjust_special_reply_port_locked(port, NULL,
 		    flags, get_turnstile);
 	}

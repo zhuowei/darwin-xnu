@@ -1386,6 +1386,11 @@ ipc_port_recv_update_inheritor(
 
 	if (ip_active(port) && port->ip_specialreply) {
 		imq_held(&port->ip_messages);
+		if (zhuoweilog()) {
+			kprintf("ipc_port_recv_update_inheritor special port=%p state=%x\n",
+			port,
+			port->ip_sync_link_state);
+		}
 
 		switch (port->ip_sync_link_state) {
 		case PORT_SYNC_LINK_PORT:
@@ -1749,7 +1754,7 @@ ipc_port_adjust_special_reply_port_locked(
 	}
 	if (zhuoweilog()) {
 		kprintf("In ipc_port_adjust_special_reply_port_locked:"
-			"port=%p obj=%p state=%x kn=%p flags=%x get_turnstile=%s",
+			"port=%p obj=%p state=%x\nkn=%p flags=%x get_turnstile=%s\n",
 			special_reply_port,
 			(void*)(special_reply_port->ip_kobject),
 			special_reply_port->ip_sync_link_state,
