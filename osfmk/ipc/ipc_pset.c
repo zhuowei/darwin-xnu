@@ -78,6 +78,8 @@
 #include <vm/vm_map.h>
 #include <libkern/section_keywords.h>
 
+extern int zhuoweilog(void);
+
 /*
  *	Routine:	ipc_pset_alloc
  *	Purpose:
@@ -648,12 +650,22 @@ filt_wlattach_sync_ipc(struct knote *kn)
 	ipc_entry_t entry;
 	ipc_port_t port = IP_NULL;
 	int error = 0;
+	if (zhuoweilog()) {
+		kprintf("filt_wlattach_sync_ipc kn=%p name=%d\n", kn, name);
+	}
 
 	if (ipc_right_lookup_read(space, name, &entry) != KERN_SUCCESS) {
+		if (zhuoweilog()) {
+			kprintf("can't get port\n");
+		}
 		return ENOENT;
 	}
 
 	/* space is read-locked */
+	if (zhuoweilog()) {
+		kprintf("entry=%p ie_object=%p ie_bits=%x\n",
+			entry, entry->ie_object, entry->ie_bits);
+	}
 
 	if (entry->ie_bits & MACH_PORT_TYPE_RECEIVE) {
 		port = ip_object_to_port(entry->ie_object);
@@ -672,6 +684,9 @@ filt_wlattach_sync_ipc(struct knote *kn)
 		is_read_unlock(space);
 		return error;
 	}
+	if (zhuoweilog()) {
+		kprintf("filt_wlattach_sync_ipc knote=%p port=%p state=%x\n", knote, port, port->ip_sync_link_state);
+	}
 
 	ip_lock(port);
 	is_read_unlock(space);
@@ -683,6 +698,9 @@ filt_wlattach_sync_ipc(struct knote *kn)
 		 * Note: this can also happen if the inheritance chain broke
 		 * because the original requestor died.
 		 */
+		if (zhuoweilog()) {
+			kprintf("not linked\n");
+		}
 		return ENOENT;
 	}
 
@@ -1057,6 +1075,10 @@ filt_machportprocess(struct knote *kn, struct kevent_qos_s *kev)
 	mach_vm_address_t addr;
 	mach_msg_size_t size;
 
+	if (zhuoweilog()) {
+		kprintf("filt_machportprocess kn=%p kev=%p\n", kn, kev);
+	}
+
 	/* Capture current state */
 	knote_fill_kevent(kn, kev, MACH_PORT_NULL);
 	kev->ext[3] = 0; /* hide our port reference from userspace */
@@ -1120,6 +1142,9 @@ filt_machportprocess(struct knote *kn, struct kevent_qos_s *kev)
 	option |= MACH_RCV_TIMEOUT; // never wait
 	self->ith_state = MACH_RCV_IN_PROGRESS;
 	self->ith_knote = kn;
+	if (zhuoweilog()) {
+		kprintf("Set ith_knote to %p\n", self->ith_knote);
+	}
 
 	wresult = ipc_mqueue_receive_on_thread(
 		mqueue,

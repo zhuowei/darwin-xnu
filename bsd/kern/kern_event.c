@@ -118,6 +118,7 @@
 #endif
 
 extern mach_port_name_t ipc_entry_name_mask(mach_port_name_t name); /* osfmk/ipc/ipc_entry.h */
+extern int zhuoweilog(void);
 
 #define KEV_EVTID(code) BSDDBG_CODE(DBG_BSD_KEVENT, (code))
 
@@ -2204,6 +2205,11 @@ filt_wlupdate_sync_ipc(struct kqworkloop *kqwl, struct knote *kn,
 	int efault_retry = EVFILT_WORKLOOP_EFAULT_RETRY_COUNT;
 	int error = 0;
 
+	if (zhuoweilog()) {
+		kprintf("filt_wlupdate_sync_ipc kqwl=%p kn=%p kev=%p op=%d\n",
+			kqwl, kn, kev, op);
+	}
+
 	if (op == FILT_WLATTACH) {
 		(void)kqueue_alloc_turnstile(&kqwl->kqwl_kqueue);
 	} else if (uaddr == 0) {
@@ -2277,6 +2283,11 @@ filt_wlattach(struct knote *kn, struct kevent_qos_s *kev)
 	struct kqworkloop *kqwl = (struct kqworkloop *)kq;
 	int error = 0, result = 0;
 	kq_index_t qos_index = 0;
+
+	if (zhuoweilog()) {
+		kprintf("filt_wlattach kn=%p kev=%p kq=%p kq_state=%x kn_sfflags=%x\n",
+			kn, kev, kq, kq->kq_state, kn->kn_sfflags);
+	}
 
 	if (__improbable((kq->kq_state & KQ_WORKLOOP) == 0)) {
 		error = ENOTSUP;
@@ -3676,6 +3687,10 @@ kevent_register(struct kqueue *kq, struct kevent_qos_s *kev,
 	int result = 0, error = 0;
 	unsigned short kev_flags = kev->flags;
 	KNOTE_LOCK_CTX(knlc);
+	if (zhuoweilog()) {
+		kprintf("kevent_register kq=%p kev=%p kn_out=%p\n",
+		kq, kev, kn_out);
+	}
 
 	if (__probable(kev->filter < 0 && kev->filter + EVFILT_SYSCOUNT >= 0)) {
 		fops = sysfilt_ops[~kev->filter];       /* to 0-base index */
@@ -3741,7 +3756,9 @@ restart:
 		/*
 		 * No knote found, need to attach a new one (attach)
 		 */
-
+		if (zhuoweilog()) {
+			kprintf("making a knote\n");
+		}
 		struct fileproc *knote_fp = NULL;
 
 		/* grab a file reference for the new knote */
@@ -7563,6 +7580,12 @@ kevent_internal(kqueue_t kqu,
     bool legacy)
 {
 	int error = 0, noutputs = 0, register_rc;
+	if (zhuoweilog()) {
+		kprintf("kevent_internal kqu=%p changelist=%p nchanges=%d ueventlist=%p nevents=%d\n"
+		"flags=%x kectx=%p retval=%p legacy=%d\n",
+			kqu.kq, (void*)changelist, nchanges, (void*)ueventlist, nevents,
+			flags, kectx, retval, (int)legacy);
+	}
 
 	/* only bound threads can receive events on workloops */
 	if (!legacy && (flags & KEVENT_FLAG_WORKLOOP)) {
@@ -7750,6 +7773,10 @@ kevent_id(struct proc *p, struct kevent_id_args *uap, int32_t *retval)
 	workq_threadreq_t kqr = uth->uu_kqr_bound;
 	kevent_ctx_t kectx = &uth->uu_save.uus_kevent;
 	kqueue_t kqu;
+
+	if (zhuoweilog()) {
+		kprintf("kevent_id\n");
+	}
 
 	flags = kevent_adjust_flags_for_proc(p, flags);
 	flags |= KEVENT_FLAG_DYNAMIC_KQUEUE;
